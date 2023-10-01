@@ -14,5 +14,7 @@ urlpatterns = [
     path('categorias/cantidad/', views.categoria_count, name='categorias_cantidad'),
     path('productos/filtrar/unidades/', views.productos_en_unidades, name='productos_en_unidades'),
     path('reporte/productos/', views.reporte_productos),
+
+    path('enviar/mensaje', views.enviar_mensaje),
     path("", include(router.urls)),
 ]

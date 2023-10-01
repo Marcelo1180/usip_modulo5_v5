@@ -8,6 +8,12 @@ class Categoria(models.Model):
     def __str__(self):
         return self.nombre
 
+    class Meta:
+        permissions = [
+            ("reporte_cantidad", "Visualizar la cantidad reporte"),
+            ("reporte_detalle", "Reporte detallado de cantidades"),
+        ]
+
 class ProductUnits(models.TextChoices):
     UNITS = 'u', 'Unidades'
     KG = 'kg', 'Kilogramos'

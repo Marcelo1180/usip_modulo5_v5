@@ -10,6 +10,15 @@ from rest_framework.decorators import api_view
 from .serializers import CategoriaSerializer
 from .serializers import ProductoSerializer
 from .serializers import ReporteProductosSerializer
+from .serializers import ContactSerializer
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import IsAuthenticated
+from .permissions import IsUserAlmacen
+from .utils import permission_required
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def index(request):
@@ -78,7 +87,6 @@ def categoria_count(request):
         cantidad = Categoria.objects.count()
         return JsonResponse(
             {"cantidad": cantidad},
-            safe=False,
             status=200,
         )
     except Exception as e:
@@ -94,7 +102,6 @@ def productos_en_unidades(request):
         productos = Producto.objects.filter(unidades='u')
         return JsonResponse(
             ProductoSerializer(productos, many=True).data,
-            safe=False,
             status=200,
         )
     except Exception as e:
@@ -102,6 +109,8 @@ def productos_en_unidades(request):
 
 
 @api_view(["GET"])
+# @permission_classes([IsUserAlmacen])
+@permission_required(['inventario.reporte_detalle'])
 def reporte_productos(request):
     """
     Listado de productos filtrado por unidades
@@ -109,13 +118,22 @@ def reporte_productos(request):
     try:
         productos = Producto.objects.filter(unidades='u')
         cantidad = Producto.objects.count()
+        logger.info("Cantidad de productos: %s", cantidad)
         return JsonResponse(
             ReporteProductosSerializer({
                 "cantidad": cantidad,
                 "productos": productos
             }).data,
-            safe=False,
             status=200,
         )
     except Exception as e:
+        logger.critical("Error al obtener el reporte de productos: %s", e)
         return JsonResponse({"message": str(e)}, safe=False, status=400)
+
+@api_view(["POST"])
+def enviar_mensaje(request):
+    cs = ContactSerializer(data=request.data)
+    if cs.is_valid():
+        return JsonResponse({"message": "Mensaje enviado correctamente"}, status=200)
+    else:
+        return JsonResponse({"message": cs.errors}, status=400)
